@@ -1,0 +1,38 @@
+name: Build
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v2
+
+      - name: 'Set up JDK 17'
+        uses: actions/setup-java@v3
+        with:
+          distribution: adopt
+          java-version: 17
+
+      - name: Build Executable Jar
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: current
+          arguments: build
+
+      - name: Generate Checksum
+        run: |
+          mv build/libs/*.jar .
+          name=$(ls sniffeine*.jar)
+          sha256sum $name > $name.sha256
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Jar
+          path: |
+            *.jar
+            *.sha256
+          retention-days: 5
